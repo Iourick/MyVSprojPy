@@ -1,0 +1,11 @@
+#попытка использовать формат данных float16 не увенчалась успехом, так как в языке С нет такого форомата.
+#Получается, что если исполльзовать этот формат, то одна из самых трудоемких функций - а именно, 
+#функция select_ieo_by_approx_lnlike_dist_marginalized_new(..), будет использовать формат float32. 
+#Кроме того, исходные данные имеют комплексный формат np.complex64. формат np.complex32 в python не существует.
+#так что, делаем вывод, что это бесполезно, мы ничего не съэкономим.
+
+#An attempt to use the float16 data format was unsuccessful, since the C language does not have such a format.
+#It turns out that if you use this format, then one of the most labor-intensive functions - namely,
+#function select_ieo_by_approx_lnlike_dist_marginalized_new(..), will use float32 format.
+#In addition, the source data is in complex format np.complex64. The np.complex32 format does not exist in python.
+#so, we conclude that this is useless, we will not save anything.
