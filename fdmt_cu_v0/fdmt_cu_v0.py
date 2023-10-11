@@ -414,7 +414,7 @@ def FDMT_iteration_cu5(d_input,maxDT,F,f_min,f_max,i_t, dFdiv2,d_Output):
     
     
     #deltaF = 2**(iteration_num) * (f_max - f_min)/float(F)
-    #dF = (f_max - f_min)/float(F)
+    #dF = (f_max - f_min)/float(F)///
     
     
    
