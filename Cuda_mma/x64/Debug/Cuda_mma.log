@@ -1,0 +1,98 @@
+﻿  Compiling CUDA source file kernel.cu...
+  
+  D:\MyVSprojPy\Cuda_mma>"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.2\bin\nvcc.exe" -gencode=arch=compute_52,code=\"sm_52,compute_52\" --use-local-env -ccbin "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.36.32532\bin\HostX64\x64" -x cu   -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.2\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.2\include"  -G   --keep-dir x64\Debug  -maxrregcount=0   --machine 64 --compile -cudart static  -g  -DWIN32 -DWIN64 -D_DEBUG -D_CONSOLE -D_MBCS -Xcompiler "/EHsc /W3 /nologo /Od /FS /Zi /RTC1 /MDd " -Xcompiler "/Fdx64\Debug\vc143.pdb" -o D:\MyVSprojPy\Cuda_mma\x64\Debug\kernel.cu.obj "D:\MyVSprojPy\Cuda_mma\kernel.cu" 
+D:\MyVSprojPy\Cuda_mma\kernel.cu(63): error : name must be a namespace name
+    using namespace nvcuda;
+                    ^
+  
+D:\MyVSprojPy\Cuda_mma\kernel.cu(93): error : name followed by "::" must be a class or namespace name
+        wmma::fragment<wmma::matrix_a, WMMA_M, WMMA_N, WMMA_K, half, wmma::col_major> a_frag;
+        ^
+  
+D:\MyVSprojPy\Cuda_mma\kernel.cu(93): error : type name is not allowed
+        wmma::fragment<wmma::matrix_a, WMMA_M, WMMA_N, WMMA_K, half, wmma::col_major> a_frag;
+                                                               ^
+  
+D:\MyVSprojPy\Cuda_mma\kernel.cu(93): error : name followed by "::" must be a class or namespace name
+        wmma::fragment<wmma::matrix_a, WMMA_M, WMMA_N, WMMA_K, half, wmma::col_major> a_frag;
+                                                                     ^
+  
+D:\MyVSprojPy\Cuda_mma\kernel.cu(93): error : identifier "a_frag" is undefined
+        wmma::fragment<wmma::matrix_a, WMMA_M, WMMA_N, WMMA_K, half, wmma::col_major> a_frag;
+                                                                                      ^
+  
+D:\MyVSprojPy\Cuda_mma\kernel.cu(94): error : name followed by "::" must be a class or namespace name
+        wmma::fragment<wmma::matrix_b, WMMA_M, WMMA_N, WMMA_K, half, wmma::col_major> b_frag;
+        ^
+  
+D:\MyVSprojPy\Cuda_mma\kernel.cu(94): error : type name is not allowed
+        wmma::fragment<wmma::matrix_b, WMMA_M, WMMA_N, WMMA_K, half, wmma::col_major> b_frag;
+                                                               ^
+  
+D:\MyVSprojPy\Cuda_mma\kernel.cu(94): error : name followed by "::" must be a class or namespace name
+        wmma::fragment<wmma::matrix_b, WMMA_M, WMMA_N, WMMA_K, half, wmma::col_major> b_frag;
+                                                                     ^
+  
+D:\MyVSprojPy\Cuda_mma\kernel.cu(94): error : identifier "b_frag" is undefined
+        wmma::fragment<wmma::matrix_b, WMMA_M, WMMA_N, WMMA_K, half, wmma::col_major> b_frag;
+                                                                                      ^
+  
+D:\MyVSprojPy\Cuda_mma\kernel.cu(95): error : name followed by "::" must be a class or namespace name
+        wmma::fragment<wmma::accumulator, WMMA_M, WMMA_N, WMMA_K, float> acc_frag;
+        ^
+  
+D:\MyVSprojPy\Cuda_mma\kernel.cu(95): error : type name is not allowed
+        wmma::fragment<wmma::accumulator, WMMA_M, WMMA_N, WMMA_K, float> acc_frag;
+                                                                  ^
+  
+D:\MyVSprojPy\Cuda_mma\kernel.cu(95): error : identifier "acc_frag" is undefined
+        wmma::fragment<wmma::accumulator, WMMA_M, WMMA_N, WMMA_K, float> acc_frag;
+                                                                         ^
+  
+D:\MyVSprojPy\Cuda_mma\kernel.cu(96): error : name followed by "::" must be a class or namespace name
+        wmma::fragment<wmma::accumulator, WMMA_M, WMMA_N, WMMA_K, float> c_frag;
+        ^
+  
+D:\MyVSprojPy\Cuda_mma\kernel.cu(96): error : type name is not allowed
+        wmma::fragment<wmma::accumulator, WMMA_M, WMMA_N, WMMA_K, float> c_frag;
+                                                                  ^
+  
+D:\MyVSprojPy\Cuda_mma\kernel.cu(96): error : identifier "c_frag" is undefined
+        wmma::fragment<wmma::accumulator, WMMA_M, WMMA_N, WMMA_K, float> c_frag;
+                                                                         ^
+  
+D:\MyVSprojPy\Cuda_mma\kernel.cu(98): error : name followed by "::" must be a class or namespace name
+        wmma::fill_fragment(acc_frag, 0.0f);
+        ^
+  
+D:\MyVSprojPy\Cuda_mma\kernel.cu(111): error : name followed by "::" must be a class or namespace name
+                wmma::load_matrix_sync(a_frag, a + aRow + aCol * lda, lda);
+                ^
+  
+D:\MyVSprojPy\Cuda_mma\kernel.cu(112): error : name followed by "::" must be a class or namespace name
+                wmma::load_matrix_sync(b_frag, b + bRow + bCol * ldb, ldb);
+                ^
+  
+D:\MyVSprojPy\Cuda_mma\kernel.cu(115): error : name followed by "::" must be a class or namespace name
+                wmma::mma_sync(acc_frag, a_frag, b_frag, acc_frag);
+                ^
+  
+D:\MyVSprojPy\Cuda_mma\kernel.cu(125): error : name followed by "::" must be a class or namespace name
+            wmma::load_matrix_sync(c_frag, c + cRow + cCol * ldc, ldc, wmma::mem_col_major);
+            ^
+  
+D:\MyVSprojPy\Cuda_mma\kernel.cu(125): error : name followed by "::" must be a class or namespace name
+            wmma::load_matrix_sync(c_frag, c + cRow + cCol * ldc, ldc, wmma::mem_col_major);
+                                                                       ^
+  
+D:\MyVSprojPy\Cuda_mma\kernel.cu(133): error : name followed by "::" must be a class or namespace name
+            wmma::store_matrix_sync(c + cRow + cCol * ldc, c_frag, ldc, wmma::mem_col_major);
+            ^
+  
+D:\MyVSprojPy\Cuda_mma\kernel.cu(133): error : name followed by "::" must be a class or namespace name
+            wmma::store_matrix_sync(c + cRow + cCol * ldc, c_frag, ldc, wmma::mem_col_major);
+                                                                        ^
+  
+  23 errors detected in the compilation of "D:/MyVSprojPy/Cuda_mma/kernel.cu".
+  kernel.cu
+C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\BuildCustomizations\CUDA 12.2.targets(799,9): error MSB3721: The command ""C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.2\bin\nvcc.exe" -gencode=arch=compute_52,code=\"sm_52,compute_52\" --use-local-env -ccbin "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.36.32532\bin\HostX64\x64" -x cu   -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.2\include" -I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.2\include"  -G   --keep-dir x64\Debug  -maxrregcount=0   --machine 64 --compile -cudart static  -g  -DWIN32 -DWIN64 -D_DEBUG -D_CONSOLE -D_MBCS -Xcompiler "/EHsc /W3 /nologo /Od /FS /Zi /RTC1 /MDd " -Xcompiler "/Fdx64\Debug\vc143.pdb" -o D:\MyVSprojPy\Cuda_mma\x64\Debug\kernel.cu.obj "D:\MyVSprojPy\Cuda_mma\kernel.cu"" exited with code 1.
