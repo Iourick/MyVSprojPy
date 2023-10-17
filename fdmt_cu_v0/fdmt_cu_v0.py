@@ -29,6 +29,7 @@ from numba import jit, njit
 import math
 from numba import cuda
 import cupy as cp
+import time
 
 def get_total_threads_limit():
     device = cuda.get_current_device()
@@ -47,8 +48,8 @@ d = 3
 m = 4
 p = 2
 b = 378 # number of frequencies in a sparse grid, due to some clever integration trick. 
-i = 100 #5000
-e = 10 #10**3
+i = 5000#100 #5000
+e = 10**3#10 #10**3
 f = 100
 
 
@@ -178,16 +179,8 @@ def FDMT_initialization(Image,f_min,f_max,maxDT,dataType):
     deltaT = int(np.ceil((maxDT-1) *(1./f_min**2 - 1./(f_min + deltaF)**2) / (1./f_min**2 - 1./f_max**2)))
 
     Output = np.zeros([F,deltaT+1,T],dtype=dataType)
-    Output[:,0,:] = Image
-
-    # !!!
-    AA = Output[0,:,:]
-    AA0 = Output[0,0,:]
-    AA1 = Output[0,1,:]
-    AA2 = Output[0,2,:]
-    # !!!
+    Output[:,0,:] = Image   
     
-
     for i_dT in range(1,deltaT+1):
         Output[:,i_dT,i_dT:] = Output[:,i_dT-1,i_dT:] + Image[:,:-i_dT]
     return Output
@@ -226,22 +219,27 @@ def FDMT(Image, f_min, f_max,maxDT ,dataType, Verbose = True):
     
     
     # 1
+    time0 = time.time()
     State_fdmt0 = solver_fdmt(State_fdmt0,maxDT,F,f_min,f_max,dataType, Verbose)    
 
     [Fs,dTs,Ts] = State_fdmt0.shape
     DMT0 = np.reshape(State_fdmt0,[dTs,Ts])
-   
-    print('original code:\n')
+    time1 = time.time()
+    
+
+    print('original code:',(time1 -time0 )*1.e3,' ms')
     
     
     
     
+    time2 = time.time()
     State_fdmt_cu_v5 = State0
     State_fdmt_cu_v5 = solver_fdmt_cu_v5(State_fdmt_cu_v5,maxDT,F,f_min,f_max,dataType, Verbose)
-    print('cu_v5:') 
+    time3 = time.time() 
     
     [Fs1,dTs1,Ts1] = State_fdmt_cu_v5.shape
     DMT_cu_v5= np.reshape(State_fdmt_cu_v5,[dTs1,Ts1])
+    print('cu_v5:',(time3 -time2 )*1.e3,' ms')
    
     return DMT_cu_v5
     
