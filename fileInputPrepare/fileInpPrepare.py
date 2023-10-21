@@ -95,9 +95,7 @@ def FDMT_test_curve(TestFDMTFFT = False):
         iDataType = 1
     else:
         if XX_1.dtype == np.int64:
-            iDataType = 2
-
-    
+            iDataType = 2    
     
 
     np.save('..\\iarrShape.npy',XX_1.shape)

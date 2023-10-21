@@ -73,15 +73,15 @@ def FDMT_test_curve(TestFDMTFFT = False):
     f_max = 1600 #MHz
     
     N_bins = 40
-    N_t = 512#1024 #512
-    N_f = 512#1024 #512
+    N_t = 1024 #512
+    N_f = 1024 #512
     N_total = N_f*N_t*N_bins
     PulseLength = N_f*N_bins
     PulseSig = 0.4
     PulsePosition = 4134567
     D = 5
     maxDT = N_t
-    dataType = 'int32'
+    dataType = 'int64'
     FUNC = FDMT
     
         
@@ -116,8 +116,6 @@ def FDMT_test_curve(TestFDMTFFT = False):
 
     XX_1 = XX.astype(np.int32)
 
-    XX = XX_1.astype(np.int32)
-
     iDataType = 0;
     if XX_1.dtype == np.int32:
         iDataType = 1
@@ -140,27 +138,6 @@ def FDMT_test_curve(TestFDMTFFT = False):
     
     #G0 = cart.cview(XX)
     DM0 = np.real(FUNC(np.ones(XX.shape,dataType),f_min,f_max,maxDT,dataType,Verbose))
-    #loaded_array = np.load('D://VS_PROJECTS//fdmt_cu_v1_db//out_arr.npy')
-    #loaded_array1 = loaded_array.reshape(DM0.shape)
-
-    #arrt = np.abs(loaded_array1- DM0).max()
-    #arrt1 = np.abs(loaded_array1- DM0).min()
-    #plt.figure()
-    #plt.imshow(DM0)
-    #plt.show() 
-
-    #plt.figure()
-    #plt.imshow(loaded_array1)
-    #plt.show() 
-
-    #dif = loaded_array1- DM0
-    #new_arr = dif[dif != 0]
-
-    
-    #plt.figure()
-    #plt.imshow(dif)
-    #plt.show() 
-
     
     
     time0 = time.time() 
@@ -171,7 +148,7 @@ def FDMT_test_curve(TestFDMTFFT = False):
     #G = cart.cview(Res)
     print("Maximum acieved SNR:", np.max(Res))
     print ("Maximum Position:", argmaxnd(Res))
-    return XX,Res,DM
+    return XX,Res,DM0
 
 
 def CoherentDedispersion(raw_signal,d, f_min, f_max, alreadyFFTed = False):
@@ -227,7 +204,7 @@ def FDMT_initialization(Image,f_min,f_max,maxDT,dataType):
     deltaT = int(np.ceil((maxDT-1) *(1./f_min**2 - 1./(f_min + deltaF)**2) / (1./f_min**2 - 1./f_max**2)))
 
     Output = np.zeros([F,deltaT+1,T],dtype=dataType)
-    Output[:,0,:] = Image      
+    Output[:,0,:] = Image   
     
     for i_dT in range(1,deltaT+1):
         Output[:,i_dT,i_dT:] = Output[:,i_dT-1,i_dT:] + Image[:,:-i_dT]
@@ -256,40 +233,13 @@ def FDMT(Image, f_min, f_max,maxDT ,dataType, Verbose = True):
     
     if (F not in [2**i for i in range(1,30)]) or (T not in [2**i for i in range(1,30)]) :
         raise NotImplementedError("Input dimensions must be a power of 2")
-    State0 = FDMT_initialization(Image,f_min,f_max,maxDT,dataType) 
-
-  
-      
-    #loaded_array = np.load('D://VS_PROJECTS//fdmt_cu_v1_db//init_arr.npy')
-    #loaded_array1 = loaded_array.reshape(State0.shape)
-    #arrt = np.abs(loaded_array1- State0).max()
-
-    #loaded_array2 = np.load('D://VS_PROJECTS//fdmt_cu_v1_db//init_arr2.npy')
-    #loaded_array21 = loaded_array2.reshape(State0.shape)
-    #arrt2 = np.abs(loaded_array21- State0).max()
-
-    #loaded_array3 = np.load('D://VS_PROJECTS//fdmt_cu_v1_db//init_arr3.npy')
-    #loaded_array31 = loaded_array3.reshape(State0.shape)
-    #arrt3 = np.abs(loaded_array31- State0).max()
-
-    #loaded_array4 = np.load('D://VS_PROJECTS//fdmt_cu_v1_db//init_arr4.npy')
-    #loaded_array41 = loaded_array4.reshape(State0.shape)
-    #arrt4 = np.abs(loaded_array41- State0).max()
-
-    #loaded_array5 = np.load('D://VS_PROJECTS//fdmt_cu_v1_db//init_arr5.npy')
-    #loaded_array51 = loaded_array5.reshape(State0.shape)
-    #arrt5 = np.abs(loaded_array51- State0).max()
-
-    #loaded_array6 = np.load('D://VS_PROJECTS//fdmt_cu_v1_db//init_arr6.npy')
-    #loaded_array61 = loaded_array6.reshape(State0.shape)
-    #arrt6 = np.abs(loaded_array61- State0).max()
-
-    
-    f = int(log2(F))   #
+    State0 = FDMT_initialization(Image,f_min,f_max,maxDT,dataType)     
+   
+    f = int(log2(F))   
     
     
     # 1
-    #State_fdmt0 = State0.copy()
+     #State_fdmt0 = State0.copy()
     #time0 = time.time()
     #State_fdmt0 = solver_fdmt(State_fdmt0,maxDT,F,f_min,f_max,dataType, Verbose)    
 
@@ -442,15 +392,9 @@ def solver_fdmt_cu_v5(State,maxDT,F,f_min,f_max,dataType, Verbose):
         dFdiv2 = (f_max - f_min)/float(F)/2.0
         
         output = FDMT_iteration_cu5(d_input,maxDT,F,f_min,f_max,i_t, dFdiv2,d_Output)
-        #if i_t == 2:
-        #    InterimOutput = d_Output.copy_to_host()
-        #    loaded_array = np.load('D://VS_PROJECTS//fdmt_cu_v1_db//arr_InterimOut.npy')
-        #    loaded_array1 = loaded_array.reshape(InterimOutput.shape)
-        #    arrt = np.abs(loaded_array1- InterimOutput).max()
-        #    ffff =0
-            
 
-        d_input = d_Output        
+        d_input = d_Output
+        
 
         d_Output = None
               
@@ -510,16 +454,6 @@ def FDMT_iteration_cu5(d_input,maxDT,F,f_min,f_max,i_t, dFdiv2,d_Output):
         arr_val0[i_F] = -(1./f_middle**2 - 1./f_start**2)/temp0
         arr_val1[i_F] = -(1./f_middle_larger**2 - 1./f_start**2)/temp0
         arr_deltaTLocal[i_F] = int(np.ceil((maxDT-1) *temp0/ temp1 ))
-    if i_t == 4:        
-        loaded_arrayv0 = np.load('D://VS_PROJECTS//fdmt_cu_v1_db//parr0.npy')        
-        del0 = np.abs(loaded_arrayv0- arr_val0).max()
-        loaded_arrayv1 = np.load('D://VS_PROJECTS//fdmt_cu_v1_db//parr1.npy')        
-        del1 = np.abs(loaded_arrayv1- arr_val1).max()
-        loaded_arrayi = np.load('D://VS_PROJECTS//fdmt_cu_v1_db//iarr_deltaTLocal.npy')        
-        del2 = np.abs(loaded_arrayi- arr_deltaTLocal).max()
-        isis = 0
-
-    
     # ! calc 3 massives of parametres
     #print('1) F_jumps =', F_jumps)
     d_arr_val0 = cuda.to_device(arr_val0)   
@@ -538,31 +472,7 @@ def FDMT_iteration_cu5(d_input,maxDT,F,f_min,f_max,i_t, dFdiv2,d_Output):
     blocks  = F_jumps 
     kernel_5_0[blocks, threads](d_arr_val0,d_arr_val1,d_arr_deltaTLocal,d_arr_dT_MI,d_arr_dT_ML, d_arr_dT_RI)  
     cuda.synchronize()
-    if i_t == 3:
-        arrMI = d_arr_dT_MI.copy_to_host()
-        loaded_arrayMI = np.load('D://VS_PROJECTS//fdmt_cu_v1_db//iarr_dT_MI.npy')
-        loaded_arrayMI1 = loaded_arrayMI.reshape(arrMI.shape)
-        arrtMI = np.abs(loaded_arrayMI1- arrMI).max()
-    
-        arrML = d_arr_dT_ML.copy_to_host()
-        loaded_arrayML = np.load('D://VS_PROJECTS//fdmt_cu_v1_db//iarr_dT_ML.npy')
-        loaded_arrayML1 = loaded_arrayML.reshape(arrML.shape)
-        maxarr = loaded_arrayML1.max()
-        minarr = loaded_arrayML1.min()
-        smax = arrML.max()
-        smin = arrML.min()
-        arrtML = np.abs(loaded_arrayML1- arrML).max()
-    
-        arrRI = d_arr_dT_RI.copy_to_host()
-        loaded_arrayRI = np.load('D://VS_PROJECTS//fdmt_cu_v1_db//iarr_dT_RI.npy')
-        loaded_arrayRI1 = loaded_arrayRI.reshape(arrRI.shape)
-        arrtRI = np.abs(loaded_arrayRI1- arrRI).max()
 
-    
-        
-        ijjj = 0
-    
-    
     '''arrMI = d_arr_dT_MI.copy_to_host()
     arr_dT_ML = d_arr_dT_MI.copy_to_host()
     arr_dT_RI = d_arr_dT_RI.copy_to_host()'''
@@ -592,7 +502,7 @@ def kernel_5_0(arr_val0,arr_val1,arr_deltaTLocal,arr_dT_middle_index,arr_dT_midd
 @cuda.jit
 def kernel_5_1(d_input,arr_deltaTLocal,arr_dT_MI,arr_dT_ML, arr_dT_RI, d_Output):
     
-    i_F = cuda.blockIdx.x
+    i_F  = cuda.blockIdx.x
     i_dT = cuda.blockIdx.y
     if i_dT > arr_deltaTLocal[i_F]:
         return
@@ -612,36 +522,17 @@ Verbose = False
 print(1)
 
 ii =0               
-inp, out, DM = FDMT_test_curve()
+inp, out, out1 = FDMT_test_curve()
 
 ii =0  
 plt.figure()
 plt.imshow(out)
 plt.show() 
 
-
-loaded_array = np.load('D://VS_PROJECTS//fdmt_cu_v1_db//out_arr.npy')
-loaded_array1 = loaded_array.reshape(DM.shape)
-
-arrt = np.abs(loaded_array1- DM).max()
-arrt1 = np.abs(loaded_array1- DM).min()
-plt.figure()
-plt.imshow(loaded_array1)
-plt.show() 
-
-dif = loaded_array1- DM
-new_arr = dif[dif != 0]
-
-    
-plt.figure()
-plt.imshow(dif)
-plt.show() 
-
-
 plt.imshow(inp)
 plt.show()
 
-plt.imshow(DM)
+plt.imshow(out1)
 plt.show()
 
 b =1
