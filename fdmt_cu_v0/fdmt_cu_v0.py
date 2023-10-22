@@ -73,8 +73,8 @@ def FDMT_test_curve(TestFDMTFFT = False):
     f_max = 1600 #MHz
     
     N_bins = 40
-    N_t = 512#1024 #512
-    N_f = 512#1024 #512
+    N_t = 2*1024#1024 #512
+    N_f = 2*1024#1024 #512
     N_total = N_f*N_t*N_bins
     PulseLength = N_f*N_bins
     PulseSig = 0.4
@@ -268,9 +268,9 @@ def FDMT(Image, f_min, f_max,maxDT ,dataType, Verbose = True):
 
   
       
-    loaded_array = np.load('D://VS_PROJECTS//fdmt_cu_v1_db//init_arr.npy')
-    loaded_array1 = loaded_array.reshape(State0.shape)
-    arrt = np.abs(loaded_array1- State0).max()
+    #loaded_array = np.load('D://VS_PROJECTS//fdmt_cpu//init_arr.npy')
+    #loaded_array1 = loaded_array.reshape(State0.shape)
+    #arrt = np.abs(loaded_array1- State0).max()
 
     #loaded_array2 = np.load('D://VS_PROJECTS//fdmt_cu_v1_db//init_arr2.npy')
     #loaded_array21 = loaded_array2.reshape(State0.shape)
@@ -518,14 +518,14 @@ def FDMT_iteration_cu5(d_input,maxDT,F,f_min,f_max,i_t, dFdiv2,d_Output):
         arr_val0[i_F] = -(1./f_middle**2 - 1./f_start**2)/temp0
         arr_val1[i_F] = -(1./f_middle_larger**2 - 1./f_start**2)/temp0
         arr_deltaTLocal[i_F] = int(np.ceil((maxDT-1) *temp0/ temp1 ))
-    if i_t == 4:        
-        loaded_arrayv0 = np.load('D://VS_PROJECTS//fdmt_cu_v1_db//parr0.npy')        
-        del0 = np.abs(loaded_arrayv0- arr_val0).max()
-        loaded_arrayv1 = np.load('D://VS_PROJECTS//fdmt_cu_v1_db//parr1.npy')        
-        del1 = np.abs(loaded_arrayv1- arr_val1).max()
-        loaded_arrayi = np.load('D://VS_PROJECTS//fdmt_cu_v1_db//iarr_deltaTLocal.npy')        
-        del2 = np.abs(loaded_arrayi- arr_deltaTLocal).max()
-        isis = 0
+    #if i_t == 1:        
+    #    loaded_arrayv0 = np.load('D://VS_PROJECTS//fdmt_cpu//arr_val0.npy')        
+    #    del0 = np.abs(loaded_arrayv0- arr_val0).max()
+    #    loaded_arrayv1 = np.load('D://VS_PROJECTS//fdmt_cpu//arr_val1.npy')        
+    #    del1 = np.abs(loaded_arrayv1- arr_val1).max()
+    #    loaded_arrayi = np.load('D://VS_PROJECTS//fdmt_cpu//iarr_deltaTLocal.npy')        
+    #    del2 = np.abs(loaded_arrayi- arr_deltaTLocal).max()
+    #    isis = 0
 
     
     # ! calc 3 massives of parametres
@@ -546,30 +546,29 @@ def FDMT_iteration_cu5(d_input,maxDT,F,f_min,f_max,i_t, dFdiv2,d_Output):
     blocks  = F_jumps 
     kernel_5_0[blocks, threads](d_arr_val0,d_arr_val1,d_arr_deltaTLocal,d_arr_dT_MI,d_arr_dT_ML, d_arr_dT_RI)  
     cuda.synchronize()
-    if i_t == 8:
-        arrMI = d_arr_dT_MI.copy_to_host()
-        loaded_arrayMI = np.load('D://VS_PROJECTS//fdmt_cu_v1_db//iarr_dT_MI.npy')
-        loaded_arrayMI1 = loaded_arrayMI.reshape(arrMI.shape)
-        arrtMI = np.abs(loaded_arrayMI1- arrMI).max()
+    #if i_t == 1:
+    #    arrMI = d_arr_dT_MI.copy_to_host()
+    #    loaded_arrayMI = np.load('D://VS_PROJECTS//fdmt_cpu//iarr_dT_MI.npy')
+    #    loaded_arrayMI1 = loaded_arrayMI.reshape(arrMI.shape)
+    #    arrtMI = np.abs(loaded_arrayMI1- arrMI).max()
     
-        arrML = d_arr_dT_ML.copy_to_host()
-        loaded_arrayML = np.load('D://VS_PROJECTS//fdmt_cu_v1_db//iarr_dT_ML.npy')
-        loaded_arrayML1 = loaded_arrayML.reshape(arrML.shape)
-        maxarr = loaded_arrayML1.max()
-        minarr = loaded_arrayML1.min()
-        smax = arrML.max()
-        smin = arrML.min()
-        arrtML = np.abs(loaded_arrayML1- arrML).max()
+    #    arrML = d_arr_dT_ML.copy_to_host()
+    #    loaded_arrayML = np.load('D://VS_PROJECTS//fdmt_cpu//iarr_dT_ML.npy')
+    #    loaded_arrayML1 = loaded_arrayML.reshape(arrML.shape)
+    #    maxarr = loaded_arrayML1.max()
+    #    minarr = loaded_arrayML1.min()
+    #    smax = arrML.max()
+    #    smin = arrML.min()
+    #    arrtML = np.abs(loaded_arrayML1- arrML).max()
     
-        arrRI = d_arr_dT_RI.copy_to_host()
-        loaded_arrayRI = np.load('D://VS_PROJECTS//fdmt_cu_v1_db//iarr_dT_RI.npy')
-        loaded_arrayRI1 = loaded_arrayRI.reshape(arrRI.shape)
-        arrtRI = np.abs(loaded_arrayRI1- arrRI).max()
+    #    arrRI = d_arr_dT_RI.copy_to_host()
+    #    loaded_arrayRI = np.load('D://VS_PROJECTS//fdmt_cpu//iarr_dT_RI.npy')
+    #    loaded_arrayRI1 = loaded_arrayRI.reshape(arrRI.shape)
+    #    arrtRI = np.abs(loaded_arrayRI1- arrRI).max()
 
     
         
-        ijjj = 0
-    
+        
     
     '''arrMI = d_arr_dT_MI.copy_to_host()
     arr_dT_ML = d_arr_dT_MI.copy_to_host()
@@ -620,7 +619,12 @@ def kernel_5_1(d_input,arr_deltaTLocal,arr_dT_MI,arr_dT_ML, arr_dT_RI, d_Output)
    
     
 
+loaded_array = np.load('D://VS_PROJECTS//fdmt_cpu//out_image.npy')
+plt.figure()
+plt.imshow(loaded_array)
+plt.show()
 
+    
 #This is the standard dispersion constant, with units that fit coherent dedispersion
 DispersionConstant = 4.148808*10**9; ## Mhz * pc^-1 * cm^3
 Verbose = False
@@ -628,44 +632,6 @@ print(1)
 
 ii =0               
 inp,  DM = FDMT_test_curve()
-
-ii =0  
-#plt.figure()
-#plt.imshow(out)
-#plt.show() 
-
-
-
-loaded_array = np.load('D://VS_PROJECTS//fdmt_cpu//out_image.npy')
-#loaded_array1 = loaded_array.reshape(DM.shape)
-#loaded_array1 = np.transpose(loaded_array1)
-
-arrt = np.abs(loaded_array- DM).max()
-plt.figure()
-plt.imshow(loaded_array)
-plt.show() 
-
-
-
-
-
-loaded_array = np.load('D://VS_PROJECTS//fdmt_cu_v1_db//out_arr.npy')
-loaded_array1 = loaded_array.reshape(DM.shape)
-
-arrt = np.abs(loaded_array1- DM).max()
-
-plt.figure()
-plt.imshow(loaded_array1)
-plt.show() 
-
-dif = loaded_array1- DM
-new_arr = dif[dif != 0]
-
-    
-plt.figure()
-plt.imshow(dif)
-plt.show() 
-
 
 plt.imshow(inp)
 plt.show()

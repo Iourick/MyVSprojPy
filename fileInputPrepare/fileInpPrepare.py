@@ -35,7 +35,7 @@ d = 3
 m = 4
 p = 2
 b = 378 # number of frequencies in a sparse grid, due to some clever integration trick. 
-i = 5000#100 #5000
+i = 100 #5000
 e = 10**3#10 #
 f = 100
 
@@ -59,8 +59,8 @@ def FDMT_test_curve(TestFDMTFFT = False):
     f_max = 1600 #MHz
     
     N_bins = 40
-    N_t = 1024 #512
-    N_f = 1024 #512
+    N_t = 2048 #512
+    N_f = 2048 #512
     N_total = N_f*N_t*N_bins
     PulseLength = N_f*N_bins
     PulseSig = 0.4
@@ -158,6 +158,7 @@ print(1)
 
 ii =0               
 inp = FDMT_test_curve()
+irr =0
 
 
 
