@@ -98,18 +98,22 @@ def FDMT_test_curve(TestFDMTFFT = False):
             iDataType = 2    
     
 
-    np.save('..\\iarrShape.npy',XX_1.shape)
-    np.save('..\\XX.npy',XX_1)
+    
+    np.save('..\\iarrShape.npy',XX.shape)
+
+    XXcur = XX.flatten()
+    np.save('..\\XX.npy',XXcur)
+
+   
+
     arr_fmin_max =  np.zeros(2,dtype = np.float32)
     arr_fmin_max[0] = f_min
     arr_fmin_max[1] = f_max
     np.save('..\\fmin_max.npy',arr_fmin_max)
 
-    iarrDataType_maxDT = np.zeros(2,dtype = np.int32)
-    iarrDataType_maxDT[0] = iDataType
-    iarrDataType_maxDT[1] = maxDT
-    np.save('..\\iarrDataType_maxDT.npy',iarrDataType_maxDT)
-
+    iarrDataType_maxDT = np.zeros(1,dtype = np.int32)    
+    iarrDataType_maxDT[0] = maxDT
+    np.save('..\\imaxDT.npy',iarrDataType_maxDT)
 
     
    
