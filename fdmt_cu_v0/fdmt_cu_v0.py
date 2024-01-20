@@ -73,8 +73,8 @@ def FDMT_test_curve(TestFDMTFFT = False):
     f_max = 1600 #MHz
     
     N_bins = 40
-    N_t = 2*1024#1024 #512
-    N_f = 2*1024#1024 #512
+    N_t = 512
+    N_f = 512
     N_total = N_f*N_t*N_bins
     PulseLength = N_f*N_bins
     PulseSig = 0.4
@@ -225,9 +225,9 @@ def FDMT_initialization(Image,f_min,f_max,maxDT,dataType):
     """
     # Data initialization is done prior to the first FDMT iteration
     # See Equations 17 and 19 in Zackay & Ofek (2014)
-    loaded_array = np.load('D://VS_PROJECTS//fdmt_cu_v1_db//init00.npy')
-    loaded_array1 = loaded_array.reshape(Image.shape)
-    arrt = np.abs(loaded_array1- Image).max()
+    #loaded_array = np.load('D://VS_PROJECTS//fdmt_cu_v1_db//init00.npy')
+    #loaded_array1 = loaded_array.reshape(Image.shape)
+    #arrt = np.abs(loaded_array1- Image).max()
     
     [F,T] = Image.shape
 
@@ -297,26 +297,26 @@ def FDMT(Image, f_min, f_max,maxDT ,dataType, Verbose = True):
     
     
     # 1
-    #State_fdmt0 = State0.copy()
-    #time0 = time.time()
-    #State_fdmt0 = solver_fdmt(State_fdmt0,maxDT,F,f_min,f_max,dataType, Verbose)    
+    State_fdmt0 = State0.copy()
+    time0 = time.time()
+    State_fdmt0 = solver_fdmt(State_fdmt0,maxDT,F,f_min,f_max,dataType, Verbose)    
 
-    #[Fs,dTs,Ts] = State_fdmt0.shape
-    #DMT0 = np.reshape(State_fdmt0,[dTs,Ts])
-    #time1 = time.time()
+    [Fs,dTs,Ts] = State_fdmt0.shape
+    DMT0 = np.reshape(State_fdmt0,[dTs,Ts])
+    time1 = time.time()
     
 
     #print('original code:',(time1 -time0 )*1.e3,' ms')   
     
-    State_fdmt_cu_v5 = State0
-    State_fdmt_cu_v5 = solver_fdmt_cu_v5(State_fdmt_cu_v5,maxDT,F,f_min,f_max,dataType, Verbose)
+    #State_fdmt_cu_v5 = State0
+    #State_fdmt_cu_v5 = solver_fdmt_cu_v5(State_fdmt_cu_v5,maxDT,F,f_min,f_max,dataType, Verbose)
     
     
-    [Fs1,dTs1,Ts1] = State_fdmt_cu_v5.shape
-    DMT_cu_v5= np.reshape(State_fdmt_cu_v5,[dTs1,Ts1])
+    #[Fs1,dTs1,Ts1] = State_fdmt_cu_v5.shape
+    #DMT_cu_v5= np.reshape(State_fdmt_cu_v5,[dTs1,Ts1])
     
    
-    return DMT_cu_v5
+    return DMT0 # DMT_cu_v5
     
     
   
@@ -619,7 +619,19 @@ def kernel_5_1(d_input,arr_deltaTLocal,arr_dT_MI,arr_dT_ML, arr_dT_RI, d_Output)
    
     
 
-loaded_array = np.load('D://VS_PROJECTS//fdmt_cpu//out_image.npy')
+new = np.load('D://VS_PROJECTS//hybrid_c_v0//cpu_init.npy')
+new1= new.flatten()
+cx = np.abs(new).max()
+
+
+
+old = np.load('D://VS_PROJECTS//fdmtU_cu_v2//gpu_init.npy')
+cx = np.abs(new-old).max()
+
+
+
+loaded_array = np.load('D://VS_PROJECTS//fdmt_cu_v10//out_image_GPU.npy')
+vv = loaded_array[0,:10]
 plt.figure()
 plt.imshow(loaded_array)
 plt.show()
@@ -638,6 +650,12 @@ plt.show()
 
 plt.imshow(DM)
 plt.show()
+
+
+temp = np.abs(loaded_array- DM).max()
+arrt = loaded_array- DM
+arrt2= arrt.flatten()
+
 
 b =1
 

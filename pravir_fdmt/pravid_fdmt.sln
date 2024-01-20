@@ -1,0 +1,23 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34309.116
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "pravir_fdmt", "pravir_fdmt.pyproj", "{A0A00E7F-4FCE-4123-9820-0E8C05DF4B9A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A0A00E7F-4FCE-4123-9820-0E8C05DF4B9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0A00E7F-4FCE-4123-9820-0E8C05DF4B9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1B1EA982-9B07-494D-9E85-02184E899A59}
+	EndGlobalSection
+EndGlobal

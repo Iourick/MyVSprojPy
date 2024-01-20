@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33815.320
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "hybrid", "hybrid.pyproj", "{518FF5EB-1DC3-42CD-8BBE-4D474371CDE4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{518FF5EB-1DC3-42CD-8BBE-4D474371CDE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{518FF5EB-1DC3-42CD-8BBE-4D474371CDE4}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{518FF5EB-1DC3-42CD-8BBE-4D474371CDE4}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{518FF5EB-1DC3-42CD-8BBE-4D474371CDE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{518FF5EB-1DC3-42CD-8BBE-4D474371CDE4}.Release|x64.ActiveCfg = Release|Any CPU
+		{518FF5EB-1DC3-42CD-8BBE-4D474371CDE4}.Release|x86.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {13555A59-566F-4B31-9C64-2CB85BCEF524}
+	EndGlobalSection
+EndGlobal
