@@ -1,0 +1,2 @@
+
+ OBSBW   =               -187.5    TELESCOP= 'GBT     '   BASE_BW =               1450.0    END

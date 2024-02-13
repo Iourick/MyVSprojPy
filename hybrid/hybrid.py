@@ -203,6 +203,7 @@ def FDMT_test_hitting_efficiency(test_FDMT_FFT = False):
     print ('hitting_efficiency', hitting_efficiency)
     return G0,G1,G2
 
+#this procedure creats input array for hybridStream_gpu project
 def save_in_binary(fileName,complex_array, N_p_, D_max_, f_min_, f_max_, SigmaBound_):
     binary_data = struct.pack('iiffffi', len(complex_array),N_p_, D_max_, f_min_, f_max_, SigmaBound_,N_p_)
     with open(fileName, 'wb') as file:
@@ -210,17 +211,86 @@ def save_in_binary(fileName,complex_array, N_p_, D_max_, f_min_, f_max_, SigmaBo
     with open(fileName, 'ab') as file:
         for complex_number in complex_array:
             file.write(struct.pack('ff', complex_number.real, complex_number.imag))
+#####################################################################
+from scipy.signal import convolve             
+#this procedure creats input array for hybridStream_gpu project
+# def save_in_binary_with_FFT(fileName,complex_array_, N_p_, D_max_, f_min_, f_max_, SigmaBound_):
+    
+#     t = np.arange(0, 1,1/len(complex_array_))     
+#     convFunc = 2.0*f_max_*np.sinc((t - t.mean()) *1.0E6 *f_max_) - 2.0*f_min_*np.sinc((t - t.mean())*1.0E6 * f_min_)
+    
+#     convFunc /= np.sum(convFunc)
+#     complex_array = convolve(complex_array_, convFunc, mode='same') 
+    
+#     binary_data = struct.pack('iiffffi', len(complex_array),N_p_, D_max_, f_min_, f_max_, SigmaBound_,N_p_)
+#     with open(fileName, 'wb') as file:
+#         file.write(binary_data)
+#     with open(fileName, 'ab') as file:
+#         for complex_number in complex_array:
+#             file.write(struct.pack('ff', complex_number.real, complex_number.imag))
+#     return complex_array
 
 
+def save_in_binary_with_FFT(fileName,complex_array_, N_p_, D_max_, f_min_, f_max_, SigmaBound_):
+    dType_ = np.float32
+    
+    t = np.arange(0, 1,1/len(complex_array_))     
+    quantSamp = len(complex_array_)
+   
+    
+    binary_data = struct.pack('iiffffi', len(complex_array_),N_p_, D_max_, f_min_, f_max_, SigmaBound_,N_p_)
+    with open(fileName, 'wb') as file:
+         file.write(binary_data)
+    npol = 2
+    nchan = 1
+    size = nchan*npol*quantSamp
+    arrayf = np.zeros(shape=(nchan*npol*quantSamp,), dtype=np.float32)
+    #f_filtered0 = np.zeros(shape=(npol*quantSamp/2,), dtype=np.complex64)
+    f_filtered0 = np.array([], dtype=np.complex64)
+    for i in range (nchan):
+        f0 = (f_min_ + (f_max_ - f_min_)/nchan*i)
+        f1 = f0 + ((f_max_ - f_min_)/nchan)
+        
+        convFunc = 2.0* 1.0E6*f1*np.sinc((t - t.mean())  *f1* 1.0E6) - 2.0* 1.0E6*f0*np.sinc((t - t.mean()) * f0 *1.0E6)
+        aa = np.sum(convFunc)
+        convFunc /= np.sum(convFunc)
+        
+        f_filtered0 = convolve(complex_array_, convFunc, mode='same')
+        
+        arr_temp = np.empty(shape=(npol*quantSamp,), dtype= np.float32)
+        if npol == 4:
+            for j in range (quantSamp):
+                arr_temp[j*4] =  f_filtered0[j].real 
+                arr_temp[j*4 +1] =  f_filtered0[j].imag  
+                arr_temp[j*4 +2] =  -f_filtered0[j].imag   
+                arr_temp[j*4 +3] =  f_filtered0[j].real
+        else:
+            for j in range (quantSamp):
+                arr_temp[j*2] =  f_filtered0[j].real 
+                arr_temp[j*2 +1] =  f_filtered0[j].imag  
+                
+        arrayf[i* quantSamp *npol:i* quantSamp *npol +quantSamp *npol] = arr_temp 
+    c0 = 256.0/np.max(np.abs(arrayf))
+    arrayf *= c0
+    f_filtered0*= c0
+    if(dType_ == np.float32):
+        with open(fileName, 'ab') as file:
+            for number in arrayf:
+                file.write(struct.pack('f', number))
+        return f_filtered0
+    else:
+        arr_out = np.empty(shape=(nchan*4*quantSamp,), dtype = dType_)
+        coeff = 128.0/ np.max(np.abs(arrayf))
+        digitized_signal = coeff * arrayf#((arrayf - np.min(arrayf)) / (np.max(arrayf) - np.min(arrayf))) * 255 
+        arri8 = digitized_signal.astype(np.int8)          
+        with open(fileName, 'ab') as file:
+            for number in arri8:
+                file.write(struct.pack('i8', number))
+        return arri8
 
     
     
-    # binary_data = struct.pack('iiffffi', len(complex_array),N_p_, D_max_, f_min_, f_max_, SigmaBound_,N_p_)
-    # with open(fileName, 'wb') as file:
-    #     file.write(binary_data)
-    # with open(fileName, 'ab') as file:
-    #     for complex_number in complex_array:
-            # file.write(struct.pack('ff', complex_number.real, complex_number.imag))
+    
 
 def createTestInfo3Chuncks():
     # 0
@@ -262,88 +332,245 @@ def createTestInfo3Chuncks():
     sig6 = CoherentDedispersion(sig5,-1,1200,1600,False)
     with open(fileName, 'ab') as file:
         for complex_number in sig6:
-            file.write(struct.pack('ff', complex_number.real, complex_number.imag))
-            
-from scipy.signal import convolve
-def createRawFileImitation():
+            file.write(struct.pack('ff', complex_number.real, complex_number.imag))          
+ 
+  
+def createRawFileImitation__(Sig0):    
     # 0
-    fileName = 'rawImit_2pow20.bin'
-    nchan = 32
-    npol = 4
-    f_min_ = 1200.
-    f_max_ = 1600.
-    quantSamp =2**20
-    Sig0_ = np.random.normal(0,1,quantSamp ).astype(np.float32)
-    Sig0_[1000:1128] = np.random.normal(0,10.,128)
-    
-    Sig1_ = Sig0_*np.exp(-1j)
-    
-    Sig0 = CoherentDedispersion(Sig0_,-1,1200,1600,False)
-    Sig1 = CoherentDedispersion(Sig1_,-1,1200,1600,False)
-    t = np.arange(0, 1,1/quantSamp) 
-    size = nchan*npol*quantSamp*4
-    binary_data = struct.pack('iiiff', nchan,npol, size, f_min_, f_max_)
-    with open(fileName, 'wb') as file:
-        file.write(binary_data)
-    for i in range (nchan):
-        f0 = f_min_ + (f_max_ - f_min_)/nchan*i
-        f1 = f0 + (f_max_ - f_min_)/nchan
-        sinc_func = np.sinc((t - t.mean()) * (f1 - f0))
-        sinc_func /= np.sum(sinc_func)
-        f_filtered0 = convolve(Sig0, sinc_func, mode='same')
-        f_filtered1 = convolve(Sig1, sinc_func, mode='same')
-        with open(fileName, 'ab') as file:
-            for j in range (quantSamp):
-                file.write(struct.pack('ffff', f_filtered0[j].real, f_filtered0[j].imag, f_filtered1[j].real, f_filtered1[j].imag))
-       
-
-
-def createRawFileImitation_():
-    # 0
-    fileName = 'rawImit_2pow20.bin'
+    dType_ = np.float32#np.int8
     nchan = 2#32
-    npol = 4
+    npol = 2#4
     f_min_ = 1200.
     f_max_ = 1600.
     quantSamp =2**20
-    Sig0_ = np.random.normal(0,1,quantSamp ).astype(np.float32)
-    Sig0_[1000:1128] = np.random.normal(0,10.,128)
-    
-    Sig1_ = Sig0_*np.exp(-1j)
-    
-    Sig0 = CoherentDedispersion(Sig0_,-1,1200,1600,False)
-    Sig1 = CoherentDedispersion(Sig1_,-1,1200,1600,False)
-    t = np.arange(0, 1,1/quantSamp) 
-    size = nchan*npol*quantSamp*4
-    arrayf = np.empty(shape=(nchan*4*quantSamp,), dtype=np.float32)
-    for i in range (nchan):
-        f0 = f_min_ + (f_max_ - f_min_)/nchan*i
-        f1 = f0 + (f_max_ - f_min_)/nchan
-        sinc_func = np.sinc((t - t.mean()) * (f1 - f0))
-        sinc_func /= np.sum(sinc_func)
-        f_filtered0 = convolve(Sig0, sinc_func, mode='same')
-        f_filtered1 = convolve(Sig1, sinc_func, mode='same')
-        arr_temp = np.empty(shape=(4*quantSamp,), dtype= np.float32)
-        for j in range (quantSamp):
-            arr_temp[j*4] =  Sig0[j].real 
-            arr_temp[j*4 +1] =  Sig0[j].imag  
-            arr_temp[j*4 +2] =  Sig1[j].real 
-            arr_temp[j*4 +3] =  Sig1[j].imag  
-        arrayf[i* quantSamp *4:i* quantSamp *4 +quantSamp *4] = arr_temp 
+    NBITS = 32
+    if dType_ == np.int8:
+        NBITS = 8
         
-    arri8 = np.empty(shape=(nchan*4*quantSamp,), dtype=np.int8)
-    digitized_signal = ((arrayf - np.min(arrayf)) / (np.max(arrayf) - np.min(arrayf))) * 255 
-    arri8 = digitized_signal.astype(np.int8)
-    binary_data = struct.pack('iiiff', nchan,npol, size, f_min_, f_max_)
-    with open(fileName, 'wb') as file:
-        file.write(binary_data)
-    with open(fileName, 'ab') as file:
-        arri8.tofile(file)
+    BLOCSIZE = quantSamp * nchan * npol*NBITS/8
+    fileName = 'D://weizmann//RAW_DATA//rawImit_2pow20_nchan_8npol_4_float.bin'
     
-              
+    fileName = 'D://weizmann//RAW_DATA//ch2.bin'
     
+    stri = "BACKEND = 'GUPPI   '     NBITS   =                    "
+    stri += str(NBITS)
+    stri += "\n"
     
-            
+    stri += "CHAN_BW =           " 
+    stri += str((f_max_ - f_min_) / nchan)
+    stri += "             OBSNCHAN=                   "
+    stri += str(nchan)
+    stri += "\n"
+    stri +="        NPOL    =                    "
+    stri += str(npol)
+    stri += "\n"
+    
+    stri += "BLOCSIZE=            "
+    stri += str(BLOCSIZE)
+    stri += "    OBS_MODE= 'RAW     '   \n"
+    
+    stri += "OBSFREQ =        "
+    stri += str((f_max_ + f_min_) / 2)
+    stri += "   OBSBW   =               "
+    stri += str(f_max_ - f_min_)
+    stri += "\n"
+    
+    stri += "TELESCOP= 'GBT     '     END DIRECTIO=                    1 END"
+    lens = len(stri)
+    
+    len0 = ((lens+511)//512)*512
+    # for i in range(len0 -lens):
+    #     stri += "0"
+        
+    #stri += "0" * (len0 -lens)
+    lens1 = len(stri)
+    position = 0;
+    with open(fileName, 'w') as file:    
+        file.write(stri)
+        position = file.tell() 
+    char_to_write = 'a'
+    len0 = ((position+511)//512)*512
+    with open(fileName, 'ab') as file: 
+        for i in range (len0 -position):            
+            file.write(char_to_write.encode('utf-8'))
+            position1 = file.tell() 
+    # Sig0_ = np.random.normal(0,1,quantSamp ).astype(np.float32)
+    # Sig0_[1000:1128] = np.random.normal(0,100.,128)  
+        
+    # Sig0 = CoherentDedispersion(Sig0_,-1,1200,1600,False)
+    
+    t = np.arange(0, 1,1/quantSamp) 
+    size = nchan*npol*quantSamp
+    arrayf = np.empty(shape=(nchan*npol*quantSamp,), dtype=np.float32)
+    f_filtered0 = np.array([], dtype=np.complex64)
+    for i in range (nchan):
+        f0 = (f_min_ + (f_max_ - f_min_)/nchan*i)
+        f1 = f0 + ((f_max_ - f_min_)/nchan)     
+
+        
+        convFunc = 2.0* 1.0E6*f1*np.sinc((t - t.mean())  *f1*1.0E6) - 2.0* 1.0E6*f0*np.sinc((t - t.mean()) * f0*1.0E6)
+    
+        rr= np.sum(convFunc)
+        convFunc /= np.sum(convFunc)
+        
+        f_filtered0 = convolve(Sig0, convFunc, mode='same')
+        
+        arr_temp = np.empty(shape=(npol*quantSamp,), dtype= np.float32)
+        if npol == 4:
+            for j in range (quantSamp):
+                arr_temp[j*4] =  f_filtered0[j].real 
+                arr_temp[j*4 +1] =  f_filtered0[j].imag  
+                arr_temp[j*4 +2] =  -f_filtered0[j].imag   
+                arr_temp[j*4 +3] =  f_filtered0[j].real
+        else:
+            for j in range (quantSamp):
+                arr_temp[j*2] =  f_filtered0[j].real 
+                arr_temp[j*2 +1] =  f_filtered0[j].imag  
+                
+        arrayf[i* quantSamp *npol:i* quantSamp *npol +quantSamp *npol] = arr_temp 
+    c0 = 256.0/np.max(np.abs(arrayf))
+    arrayf *= c0
+    if(dType_ == np.float32):
+        with open(fileName, 'ab') as file:
+            for number in arrayf:
+                file.write(struct.pack('f', number))
+        return f_filtered0
+    
+    else:
+        arr_out = np.empty(shape=(nchan*4*quantSamp,), dtype = dType_)
+        coeff = 128.0/ np.max(np.abs(arrayf))
+        digitized_signal = coeff * arrayf#((arrayf - np.min(arrayf)) / (np.max(arrayf) - np.min(arrayf))) * 255 
+        arri8 = digitized_signal.astype(np.int8)     
+        with open(fileName, 'ab') as file:
+            arri8.tofile(file)
+    
+        return arri8      
+
+##########################
+ 
+def createRawFileImitation_new():   
+    N_p_ = 128;
+    D_max_ = 1.5
+    f_min_ = 1200.
+    f_max_ = 1600.
+    SigmaBound_ = 10. #5.
+    fileName = 'data.bin'
+    
+    dType_ = np.float32#np.int8
+    nchan = 1#32
+    npol = 2#4
+    f_min_ = 1200.
+    f_max_ = 1600.
+    quantSamp =2**20
+    NBITS = 32
+    if dType_ == np.int8:
+        NBITS = 8
+        
+    BLOCSIZE = quantSamp * nchan * npol*NBITS/8
+    fileName = 'D://weizmann//RAW_DATA//rawImit_2pow20_nchan_1npol_2_float.bin'       
+    
+    stri = "BACKEND = 'GUPPI   '     NBITS   =                    "
+    stri += str(NBITS)
+    stri += "\n"
+    
+    stri += "CHAN_BW =           " 
+    stri += str((f_max_ - f_min_) / nchan)
+    stri += "             OBSNCHAN=                   "
+    stri += str(nchan)
+    stri += "\n"
+    stri +="        NPOL    =                    "
+    stri += str(npol)
+    stri += "\n"
+    
+    stri += "BLOCSIZE=            "
+    stri += str(BLOCSIZE)
+    stri += "    OBS_MODE= 'RAW     '   \n"
+    
+    stri += "OBSFREQ =        "
+    stri += str((f_max_ + f_min_) / 2)
+    stri += "   OBSBW   =               "
+    stri += str(f_max_ - f_min_)
+    stri += "\n"
+    
+    stri += "TELESCOP= 'GBT     '     END DIRECTIO=                    1 END"
+    lens = len(stri)
+    
+    len0 = ((lens+511)//512)*512
+    
+    lens1 = len(stri)
+    position = 0;
+    with open(fileName, 'w') as file:    
+        file.write(stri)
+        position = file.tell() 
+    char_to_write = 'a'
+    len0 = ((position+511)//512)*512
+    with open(fileName, 'ab') as file: 
+        for i in range (len0 -position):            
+            file.write(char_to_write.encode('utf-8'))
+            position1 = file.tell() 
+    Sig0_ = np.random.normal(0,1,quantSamp ).astype(np.float32)
+    Sig0_[1000:1128] = np.random.normal(0,100.,128)  
+        
+    
+    t = np.arange(0, 1,1/quantSamp) 
+    
+    arrayf = np.zeros(shape=(nchan*npol*quantSamp,), dtype=np.float32)
+    f_filtered0 = np.array([], dtype=np.complex64)
+    dm = 1. #dispersion  measure
+    for i in range (nchan):    
+        f0 = (f_min_ + (f_max_ - f_min_)/nchan*i)
+        f1 = f0 + ((f_max_ - f_min_)/nchan) 
+                
+        #delta_t = -dm * DispersionConstant*(1./f0/f0 - 1./f_min_/f_min_)/1.0E6
+        #chan_delay = int((dm * DispersionConstant * (f_max_**-2 - f0**-2))/2**20)
+        chan_delay = -int((dm * DispersionConstant * (f_max_**-2 - f0**-2)))
+        sig_shifted = np.roll(Sig0_, chan_delay)
+        #delta_t = 1./ f0 + (f0 - f_min_) / (f_max_**2)   
+        Sig1 = CoherentDedispersion(sig_shifted,-dm,f0, f1,False)
+        #Sig2 =  Sig1 * np.e**(-2*np.pi*dm * DispersionConstant*complex(0,1)*delta_t)/1.0E3
+       
+        convFunc = 2.0* 1.0E6*f1*np.sinc((t - t.mean())  *f1*1.0E6) - 2.0* 1.0E6*f0*np.sinc((t - t.mean()) * f0*1.0E6)    
+        
+        convFunc /= np.sum(convFunc)
+        
+        f_filtered0 = Sig1#convolve(Sig2, convFunc, mode='same')
+        
+        arr_temp = np.empty(shape=(npol*quantSamp,), dtype= np.float32)
+        if npol == 4:
+            for j in range (quantSamp):
+                arr_temp[j*4] =  f_filtered0[j].real 
+                arr_temp[j*4 +1] =  f_filtered0[j].imag  
+                arr_temp[j*4 +2] =  -f_filtered0[j].imag   
+                arr_temp[j*4 +3] =  f_filtered0[j].real
+        else:
+            for j in range (quantSamp):
+                arr_temp[j*2] =  f_filtered0[j].real 
+                arr_temp[j*2 +1] =  f_filtered0[j].imag  
+                
+        arrayf[i* quantSamp *npol:i* quantSamp *npol +quantSamp *npol] = arr_temp 
+    c0 = 256.0/np.max(np.abs(arrayf))
+    arrayf *= c0
+    if(dType_ == np.float32):
+        with open(fileName, 'ab') as file:
+            for number in arrayf:
+                file.write(struct.pack('f', number))
+        return f_filtered0
+    
+    else:
+        arr_out = np.empty(shape=(nchan*4*quantSamp,), dtype = dType_)
+        coeff = 128.0/ np.max(np.abs(arrayf))
+        digitized_signal = coeff * arrayf#((arrayf - np.min(arrayf)) / (np.max(arrayf) - np.min(arrayf))) * 255 
+        arri8 = digitized_signal.astype(np.int8)     
+        with open(fileName, 'ab') as file:
+            arri8.tofile(file)
+    
+        return arri8
+      
+
+##########################
+  
+ 
+             
     
     # ###
     
@@ -382,13 +609,10 @@ def createRawFileImitation_():
 def HybridDedispersion_test():
     sig = np.random.normal(0,1,2**20)
     #sig[1000:1128] = np.random.normal(0,20.,128)
-    sig[10000:10128] = np.random.normal(0,15.,128)
+    sig[10000:10128] = np.random.normal(0,20.,128)
     
     # Dispersion is just like dedispersion with a minus sign...
     sig2 = CoherentDedispersion(sig,-1,1200,1600,False)
-
-
-
     N_p_ = 128;
     D_max_ = 1.5
     f_min_ = 1200.
@@ -396,9 +620,10 @@ def HybridDedispersion_test():
     SigmaBound_ = 10. #5.
     fileName = 'data.bin'
     sig3 = sig2.astype(np.complex64)
-    save_in_binary(fileName,sig3, N_p_, D_max_, f_min_, f_max_, SigmaBound_)
-
-    H = HybridDedispersion(sig2,128,1.5,1200,1600,5)
+    #sig4 = save_in_binary_with_FFT(fileName,sig3, N_p_, D_max_, f_min_, f_max_, SigmaBound_)
+    # sig4 =createRawFileImitation__(sig3)
+    
+    H = HybridDedispersion(sig3,128,1.5,1200,1600,5)
     
     return cart.cview(H[1][:128,:128]),H
 
@@ -713,7 +938,10 @@ def CoherentDedispersion(raw_signal,d, f_min, f_max, alreadyFFTed = False):
     f = np.arange(0,f_max-f_min, float(f_max-f_min)/N_total)
     
     # The added linear term makes the arrival times of the highest frequencies be 0
+    #H = np.e**(-(2*np.pi*complex(0,1) * practicalD /(f_min + f)/(f_min + f) - 2*np.pi*complex(0,1) * practicalD /(f_max**2)))
     H = np.e**(-(2*np.pi*complex(0,1) * practicalD /(f_min + f) + 2*np.pi*complex(0,1) * practicalD*f /(f_max**2)))
+    #Y=raw_signal * H
+    
     if not alreadyFFTed:
         CD = np.fft.ifft(np.fft.fft(raw_signal) * H)
     else :
@@ -733,6 +961,20 @@ def STFT(raw_signal,block_size):
     """
     S = np.transpose(raw_signal[:int(len(raw_signal)//block_size) * block_size].reshape([int(len(raw_signal)//block_size),block_size]))
     return np.fft.fft(S,axis = 0)    
+
+def STFT_(raw_signal,block_size):
+    """
+        Raw signal will be devided to blocks, each block will be fourier transformed
+        Input: 
+            raw_signal - raw antenna voltage time series
+            block_size - number of bins in each block
+        Output:
+            frequency vs. time matrix
+        Note: absolute value squared is not performed!
+    """
+    S = np.fft.fft(raw_signal[:int(len(raw_signal)//block_size) * block_size].reshape([int(len(raw_signal)//block_size),block_size]),axis = 1)
+    
+    return np.transpose(S)    
 
 def HybridDedispersion(raw_signal, N_p, D_max, f_min, f_max, SigmaBound = 7):
     """
@@ -765,11 +1007,14 @@ def HybridDedispersion(raw_signal, N_p, D_max, f_min, f_max, SigmaBound = 7):
 
     print ("FDMT parameters:", [N_p,int(len(raw_signal)/N_p)],f_min,f_max,N_p, 'int64',False)
     FDMT_normalization = FDMT(np.ones([N_p,int(len(raw_signal)//N_p)], dtype=np.int64),f_min,f_max,N_p, 'int64',False)
-    for outer_d in range(n_coherent):    
+    for outer_d in range(n_coherent):
+    #for outer_d in range(31,32):
         print ("coherent iteration", outer_d)
         cur_coherent_d = outer_d * (D_max/float(n_coherent))
         print (cur_coherent_d)
-        FDMT_input = abs(STFT(CoherentDedispersion(ffted_signal, cur_coherent_d, f_min, f_max, alreadyFFTed = True), N_p))**2
+        Y =CoherentDedispersion(ffted_signal, cur_coherent_d, f_min, f_max, alreadyFFTed = True)
+        Z= STFT_(Y, N_p)
+        FDMT_input = abs(STFT_(CoherentDedispersion(ffted_signal, cur_coherent_d, f_min, f_max, alreadyFFTed = True), N_p))**2
         FDMT_input -= np.mean(FDMT_input)
         #FDMT_input /= 0.25*np.std(FDMT_input)
         FDMT_input /= np.std(FDMT_input)
@@ -846,6 +1091,9 @@ def BitPack(Inputs, dataType, safe = True):
     
  #study
 
+
+
+
 # Define the data type and length
 #dtype = np.float32
 #length = 24
@@ -899,14 +1147,14 @@ def BitPack(Inputs, dataType, safe = True):
  #return np.fft.fft(S,axis = 0) 
  #
  #
+from matplotlib import pyplot as plt
+datapath='D:/VS_PROJECTS/guppi_hybridStream_gpu_m/fdmt_inp.npy'    
+data=np.load(datapath)
+data = data[:,:128]
+plt.imshow(data, aspect="auto")
+plt.show()
  #
- #
- #
- #
- #
- # 
-createRawFileImitation_()     
-createTestInfo3Chuncks()
+createRawFileImitation_new()
 pl,H = HybridDedispersion_test()
 from matplotlib import pyplot as plt
 plt.imshow(H[1][:128,:128], aspect="auto")
@@ -914,7 +1162,7 @@ plt.show()
 RR = H[1]
 sh = RR.shape
 iiii =0
-    
+'D:\VS_PROJECTS\guppi_hybridStream_gpu_m\fdmt_inp.npy'    
     
 
 
